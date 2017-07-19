@@ -21,29 +21,29 @@ KVO用起来太TMD麻烦了，要注册成为某个对象属性的观察者，�
 在Category的.h文件中有两个属性，根据备注可知区别在意一个是持有的，另一个不是。
 
 
-    /\*\*
+    /**
     @abstract Lazy-loaded FBKVOController for use with any object
     @return FBKVOController associated with this object, creating one if necessary
     @discussion This makes it convenient to simply create and forget a FBKVOController, and when this object gets dealloc'd, so will the    associated     controller and the observation info.
-    \*/
-    @property (nonatomic, strong) FBKVOController \*KVOController;
+    */
+    @property (nonatomic, strong) FBKVOController *KVOController;
 
-    /\*\*
+    /**
     @abstract Lazy-loaded FBKVOController for use with any object
     @return FBKVOController associated with this object, creating one if necessary
     @discussion This makes it convenient to simply create and forget a FBKVOController.
     Use this version when a strong reference between controller and observed object would create a retain cycle.
     When not retaining observed objects, special care must be taken to remove observation info prior to deallocation of the observed object.
-\*/
-    @property (nonatomic, strong) FBKVOController \*KVOControllerNonRetaining;
+    */
+     @property (nonatomic, strong) FBKVOController *KVOControllerNonRetaining;
 
 
 Category的.m文件和其他文件类似，写的都是**setter**以及**getter**方法，并且在getter方法中对别对两个属性做了对于 FBKVOController 的初始化。
 
 
-    - (FBKVOController \*)KVOController
+    - (FBKVOController *)KVOController
     {
-    id controller = objc\_getAssociatedObject(self, NSObjectKVOControllerKey);
+    id controller = objc_getAssociatedObject(self, NSObjectKVOControllerKey);
 
     // lazily create the KVOController
     if (nil == controller) {
@@ -54,14 +54,14 @@ Category的.m文件和其他文件类似，写的都是**setter**以及**getter*
     return controller;
     }
 
-    - (void)setKVOController:(FBKVOController \*)KVOController
+    - (void)setKVOController:(FBKVOController *)KVOController
     {
-    objc\_setAssociatedObject(self, NSObjectKVOControllerKey, KVOController, OBJC\_ASSOCIATION\_RETAIN\_NONATOMIC);
+    objc_setAssociatedObject(self, NSObjectKVOControllerKey, KVOController, OBJC_ASSOCIATION_RETAIN_NONATOMIC);
     }
 
-    - (FBKVOController \*)KVOControllerNonRetaining
+    - (FBKVOController *)KVOControllerNonRetaining
     {
-    id controller = objc\_getAssociatedObject(self, NSObjectKVOControllerNonRetainingKey);
+    id controller = objc_getAssociatedObject(self, NSObjectKVOControllerNonRetainingKey);
 
     if (nil == controller) {
     controller = [[FBKVOController alloc] initWithObserver:self retainObserved:NO];
@@ -71,9 +71,9 @@ Category的.m文件和其他文件类似，写的都是**setter**以及**getter*
     return controller;
     }
 
-    - (void)setKVOControllerNonRetaining:(FBKVOController \*)KVOControllerNonRetaining
+    - (void)setKVOControllerNonRetaining:(FBKVOController *)KVOControllerNonRetaining
     {
-    objc\_setAssociatedObject(self, NSObjectKVOControllerNonRetainingKey, KVOControllerNonRetaining,        OBJC\_ASSOCIATION\_RETAIN\_NONATOMIC);
+    objc_setAssociatedObject(self, NSObjectKVOControllerNonRetainingKey, KVOControllerNonRetaining,        OBJC_ASSOCIATION_RETAIN_NONATOMIC);
     }
 
 
@@ -83,43 +83,43 @@ Category的.m文件和其他文件类似，写的都是**setter**以及**getter*
 
 #### 1）几个基本API
 
-    /\*\*
+    /**
     @abstract Creates and returns an initialized KVO controller instance.
     @param observer The object notified on key-value change.
     @return The initialized KVO controller instance.
-    \*/
+    */
     + (instancetype)controllerWithObserver:(nullable id)observer;
 
 
-    /\*\*
+    /**
     @abstract Registers observer for key-value change notification.
     @param object The object to observe.
     @param keyPath The key path to observe.
     @param options The NSKeyValueObservingOptions to use for observation.
     @param block The block to execute on notification.
     @discussion On key-value change, the specified block is called. In order to avoid retain loops, the block must avoid referencing the  KVO controller or an owner thereof. Observing an already observed object key path or nil results in no operation.
-    \*/
-    - (void)observe:(nullable id)object keyPath:(NSString \*)keyPath options:(NSKeyValueObservingOptions)options block:(FBKVONotificationBlock)block;
+    */
+    - (void)observe:(nullable id)object keyPath:(NSString *)keyPath options:(NSKeyValueObservingOptions)options block:(FBKVONotificationBlock)block;
 
 
-    /\*\*
+    /**
     @abstract Registers observer for key-value change notification.
     @param object The object to observe.
     @param keyPath The key path to observe.
     @param options The NSKeyValueObservingOptions to use for observation.
     @param action The observer selector called on key-value change.
     @discussion On key-value change, the observer's action selector is called. The selector provided should take the form of -propertyDidChange, -    propertyDidChange: or -propertyDidChange:object:, where optional parameters delivered will be KVO change dictionary and object observed. Observing nil or observing an already observed object's key path results in no operation.
-    \*/
-    - (void)observe:(nullable id)object keyPath:(NSString \*)keyPath options:(NSKeyValueObservingOptions)options action:(SEL)action;
+    */
+    - (void)observe:(nullable id)object keyPath:(NSString *)keyPath options:(NSKeyValueObservingOptions)options action:(SEL)action;
 
 
-    /\*\*
+    /**
     @abstract Block called on key-value change notification.
     @param observer The observer of the change.
     @param object The object changed.
     @param change The change dictionary which also includes @c FBKVONotificationKeyPathKey
-    \*/
-    typedef void (^FBKVONotificationBlock)(id \_Nullable observer, id object, NSDictionary\<NSKeyValueChangeKey, id\> \*change);
+    */
+    typedef void (^FBKVONotificationBlock)(id _Nullable observer, id object, NSDictionary<NSKeyValueChangeKey, id> *change);
 
 
 
@@ -134,27 +134,27 @@ Category的.m文件和其他文件类似，写的都是**setter**以及**getter*
 ## 主要的实现逻辑
 
 KVOController的实现需要有两个私有的成员变量：
-*  NSMapTable\<id, NSMutableSet\<_FBKVOInfo *\> *\> \*_objectInfosMap;
-*  pthread\_mutex\_t \_lock;
+*  NSMapTable<id, NSMutableSet<_FBKVOInfo *> *> *_objectInfosMap;
+*  pthread_mutex_t _lock;
 
 以及另一个暴露在外只读的属性：
 * @property (nullable, nonatomic, weak, readonly) id observer;
 
-在实现过程中，作为 KVO 的管理者，其必须持有当前对象所有与 KVO 有关的信息，而在 KVOController 中，用于存储这个信息的数据结构就是 NSMapTable。为了保证线程安全，需要持有pthread\_mutex\_t锁，用于在操作NSMapTable时候使用。
+在实现过程中，作为 KVO 的管理者，其必须持有当前对象所有与 KVO 有关的信息，而在 KVOController 中，用于存储这个信息的数据结构就是 NSMapTable。为了保证线程安全，需要持有pthread_mutex_t锁，用于在操作NSMapTable时候使用。
 
 #### 1、下面让我们看初始化方法：
 
     - (instancetype)initWithObserver:(nullable id)observer retainObserved:(BOOL)retainObserved
     {
-self = [super init];
-if (nil != self) {
-\_observer = observer;
-NSPointerFunctionsOptions keyOptions = retainObserved ? NSPointerFunctionsStrongMemory|NSPointerFunctionsObjectPointerPersonality :   NSPointerFunctionsWeakMemory|NSPointerFunctionsObjectPointerPersonality;
-\_objectInfosMap = [[NSMapTable alloc] initWithKeyOptions:keyOptions valueOptions:NSPointerFunctionsStrongMemory|NSPointerFunctionsObjectPersonality capacity:0];
-pthread\_mutex\_init(&\_lock, NULL);
-}
-return self;
-}
+        self = [super init];
+        if (nil != self) {
+        _observer = observer;
+        NSPointerFunctionsOptions keyOptions = retainObserved ? NSPointerFunctionsStrongMemory|NSPointerFunctionsObjectPointerPersonality :   NSPointerFunctionsWeakMemory|NSPointerFunctionsObjectPointerPersonality;
+        _objectInfosMap = [[NSMapTable alloc] initWithKeyOptions:keyOptions        valueOptions:NSPointerFunctionsStrongMemory|NSPointerFunctionsObjectPersonality capacity:0];
+        pthread_mutex_init(&_lock, NULL);
+        }
+        return self;
+        }
 
 很简单，主要工作是持有了传进来的**Observer**，初始化了**NSMapTable**以及初始化了**pthread\_mutex\_t**锁。
 值得一提的是初始化\*\* NSMapTable**，我们回看第二部分，在属性的区分就在于是否是持有，根据属性的名字也能看出，不持有的话，引用计数就不会加一。所以在初始化的时候明显的区分就是在创建**NSPointerFunctionsOptions\*\*的时候，是StrongMemory还是WeakMemory。
@@ -165,125 +165,125 @@ return self;
 
 通常情况下我们会使用可以回调Block的API，但是也有少数情况下会选择传递选择子SEL的API，我们这里只拿传递Block的方法举例子。
 
-- (void)observe:(nullable id)object keyPath:(NSString \*)keyPath options:(NSKeyValueObservingOptions)options block:(FBKVONotificationBlock)block
-{
-NSAssert(0 != keyPath.length && NULL != block, @"missing required parameters observe:%@ keyPath:%@ block:%p", object, keyPath, block);
-if (nil == object || 0 == keyPath.length || NULL == block) {
-return;
-}
+        - (void)observe:(nullable id)object keyPath:(NSString *)keyPath options:(NSKeyValueObservingOptions)options block: (FBKVONotificationBlock)block
+        {
+        NSAssert(0 != keyPath.length && NULL != block, @"missing required parameters observe:%@ keyPath:%@ block:%p", object, keyPath, block);
+        if (nil == object || 0 == keyPath.length || NULL == block) {
+        return;
+        }
 
-// create info
-\_FBKVOInfo \*info = [[\_FBKVOInfo alloc] initWithController:self keyPath:keyPath options:options block:block];
+        // create info
+        _FBKVOInfo *info = [[_FBKVOInfo alloc] initWithController:self keyPath:keyPath options:options block:block];
 
-// observe object with info
-[self \_observe:object info:info];
-}
+        // observe object with info
+        [self _observe:object info:info];
+        }
 
 在这里传递进来的一些参数会被封装成为私有的**_FBKVOInfo**，那我们来简单看一下**_FBKVOInfo**的主要实现：
 
-{
-@public
-\__weak FBKVOController \*_controller;
-NSString \*\_keyPath;
-NSKeyValueObservingOptions \_options;
-SEL \_action;
-void \*\_context;
-FBKVONotificationBlock \_block;
-_FBKVOInfoState _state;
-}
+        {
+        @public
+        __weak FBKVOController *_controller;
+        NSString *_keyPath;
+        NSKeyValueObservingOptions _options;
+        SEL _action;
+        void *_context;
+        FBKVONotificationBlock _block;
+        _FBKVOInfoState _state;
+        }
 
-- (instancetype)initWithController:(FBKVOController \*)controller
-keyPath:(NSString \*)keyPath
-options:(NSKeyValueObservingOptions)options
-block:(nullable FBKVONotificationBlock)block
-action:(nullable SEL)action
-context:(nullable void \*)context
-{
-self = [super init];
-if (nil != self) {
-\_controller = controller;
-\_block = [block copy];
-\_keyPath = [keyPath copy];
-\_options = options;
-\_action = action;
-\_context = context;
-}
-return self;
-}
+        - (instancetype)initWithController:(FBKVOController *)controller
+        keyPath:(NSString *)keyPath
+        options:(NSKeyValueObservingOptions)options
+        block:(nullable FBKVONotificationBlock)block
+        action:(nullable SEL)action
+        context:(nullable void *)context
+        {
+        self = [super init];
+        if (nil != self) {
+        _controller = controller;
+        _block = [block copy];
+        _keyPath = [keyPath copy];
+        _options = options;
+        _action = action;
+        _context = context;
+        }
+        return self;
+        }
 
-由此可以看出，\*\* _FBKVOInfo**的主要作用就是起到了一个类似Model一样存储主要数据的作用，并储存了一个**_FBKVOInfoState\*\*作为表示当前的 KVO 状态。
+由此可以看出，** _FBKVOInfo**的主要作用就是起到了一个类似Model一样存储主要数据的作用，并储存了一个**_FBKVOInfoState**作为表示当前的 KVO 状态。
 需要注意的是，成员变量都是用了**@public**修饰。
 另外，对**- (NSString *)debugDescription**以及**- (NSString *)debugDescription**两个方法做了重写，方便了使用以及Debug。
 
 
-之后执行了私有方法\**- (void)_observe:(id)object info:(_FBKVOInfo *)info\*\*
+之后执行了私有方法**- (void)_observe:(id)object info:(_FBKVOInfo *)info**
 
-- (void)_observe:(id)object info:(_FBKVOInfo \*)info
-{
-// lock
-pthread\_mutex\_lock(&\_lock);
+        - (void)_observe:(id)object info:(_FBKVOInfo *)info
+        {
+        // lock
+        pthread_mutex_lock(&_lock);
 
-NSMutableSet \*infos = [\_objectInfosMap objectForKey:object];
+        NSMutableSet *infos = [_objectInfosMap objectForKey:object];
 
-// check for info existence
-\_FBKVOInfo \*existingInfo = [infos member:info];
-if (nil != existingInfo) {
-// observation info already exists; do not observe it again
+        // check for info existence
+        _FBKVOInfo *existingInfo = [infos member:info];
+        if (nil != existingInfo) {
+        // observation info already exists; do not observe it again
 
-// unlock and return
-pthread\_mutex\_unlock(&\_lock);
-return;
-}
+        // unlock and return
+        pthread_mutex_unlock(&_lock);
+        return;
+        }
 
-// lazilly create set of infos
-if (nil == infos) {
-infos = [NSMutableSet set];
-[\_objectInfosMap setObject:infos forKey:object];
-}
+        // lazilly create set of infos
+        if (nil == infos) {
+        infos = [NSMutableSet set];
+        [_objectInfosMap setObject:infos forKey:object];
+        }
 
-// add info and oberve
-[infos addObject:info];
+        // add info and oberve
+        [infos addObject:info];
 
-// unlock prior to callout
-pthread\_mutex\_unlock(&\_lock);
+        // unlock prior to callout
+        pthread_mutex_unlock(&_lock);
 
-[[\_FBKVOSharedController sharedController] observe:object info:info];
-}
+        [[_FBKVOSharedController sharedController] observe:object info:info];
+        }
 
 
-1）首先先进行的是对于自身持有的 **\_objectInfosMap**这个成员变量的操作，一切都需要在先**锁定**，执行结束再**解锁**的过程。
+1）首先先进行的是对于自身持有的 **_objectInfosMap**这个成员变量的操作，一切都需要在先**锁定**，执行结束再**解锁**的过程。
 
 *  首先获取了对于当前观察者的注册的关注列表。
 *  判断是否当前需要关注的信息是否在此列表中，如果有则return出去，不再进行关注。
 *  如果当前的关注列表不存在则此时创建一个
 *  将关注的信息储存在关注列表中。
 
-2）然后是获取了\*\* _FBKVOSharedController**单例并且执行了单例的**- (void)observe:(id)object info:(nullable _FBKVOInfo *)info*\*方法。
+2）然后是获取了** _FBKVOSharedController**单例并且执行了单例的**- (void)observe:(id)object info:(nullable _FBKVOInfo *)info**方法。
 
-- (void)observe:(id)object info:(nullable \_FBKVOInfo \*)info
-{
-if (nil == info) {
-return;
-}
+        - (void)observe:(id)object info:(nullable _FBKVOInfo *)info
+        {
+        if (nil == info) {
+        return;
+        }
 
-// register info
-pthread\_mutex\_lock(&\_mutex);
-[\_infos addObject:info];
-pthread\_mutex\_unlock(&\_mutex);
+        // register info
+        pthread_mutex_lock(&_mutex);
+        [_infos addObject:info];
+        pthread_mutex_unlock(&_mutex);
 
-// add observer
-[object addObserver:self forKeyPath:info-\>\_keyPath options:info-\>\_options context:(void \*)info];
+        // add observer
+        [object addObserver:self forKeyPath:info-\>\_keyPath options:info-\>\_options context:(void \*)info];
 
-if (info-\>\_state == \_FBKVOInfoStateInitial) {
-info-\>\_state = \_FBKVOInfoStateObserving;
-} else if (info-\>\_state == \_FBKVOInfoStateNotObserving) {
-// this could happen when `NSKeyValueObservingOptionInitial` is one of the NSKeyValueObservingOptions,
-// and the observer is unregistered within the callback block.
-// at this time the object has been registered as an observer (in Foundation KVO),
-// so we can safely unobserve it.
-[object removeObserver:self forKeyPath:info-\>\_keyPath context:(void \*)info];
-}
-}
+        if (info->_state == _FBKVOInfoStateInitial) {
+        info->_state = _FBKVOInfoStateObserving;
+        } else if (info->_state == _FBKVOInfoStateNotObserving) {
+        // this could happen when `NSKeyValueObservingOptionInitial` is one of the NSKeyValueObservingOptions,
+        // and the observer is unregistered within the callback block.
+        // at this time the object has been registered as an observer (in Foundation KVO),
+        // so we can safely unobserve it.
+        [object removeObserver:self forKeyPath:info->_keyPath context:(void *)info];
+        }
+        }
 
 加锁，对于当前单例的**NSHashTable**进行添加操作的信息，并执行**Foundation**的
 
