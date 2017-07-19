@@ -20,61 +20,61 @@ KVO用起来太TMD麻烦了，要注册成为某个对象属性的观察者，�
 
 在Category的.h文件中有两个属性，根据备注可知区别在意一个是持有的，另一个不是。
 
-`
-``/\*\*
-``@abstract Lazy-loaded FBKVOController for use with any object
-``@return FBKVOController associated with this object, creating one if necessary
-``@discussion This makes it convenient to simply create and forget a FBKVOController, and when this object gets dealloc'd, so will the associated     controller and the observation info.
-`\*/
-`@property (nonatomic, strong) FBKVOController \*KVOController;
-`
-`/\*\*
-``@abstract Lazy-loaded FBKVOController for use with any object
-``@return FBKVOController associated with this object, creating one if necessary
-``@discussion This makes it convenient to simply create and forget a FBKVOController.
-``Use this version when a strong reference between controller and observed object would create a retain cycle.
-``When not retaining observed objects, special care must be taken to remove observation info prior to deallocation of the observed object.
-``\*/
-``@property (nonatomic, strong) FBKVOController \*KVOControllerNonRetaining;
-``
-`
+
+    /\*\*
+    @abstract Lazy-loaded FBKVOController for use with any object
+    @return FBKVOController associated with this object, creating one if necessary
+    @discussion This makes it convenient to simply create and forget a FBKVOController, and when this object gets dealloc'd, so will the    associated     controller and the observation info.
+    \*/
+    @property (nonatomic, strong) FBKVOController \*KVOController;
+
+    /\*\*
+    @abstract Lazy-loaded FBKVOController for use with any object
+    @return FBKVOController associated with this object, creating one if necessary
+    @discussion This makes it convenient to simply create and forget a FBKVOController.
+    Use this version when a strong reference between controller and observed object would create a retain cycle.
+    When not retaining observed objects, special care must be taken to remove observation info prior to deallocation of the observed object.
+\*/
+    @property (nonatomic, strong) FBKVOController \*KVOControllerNonRetaining;
+
+
 Category的.m文件和其他文件类似，写的都是**setter**以及**getter**方法，并且在getter方法中对别对两个属性做了对于 FBKVOController 的初始化。
 
 
-- (FBKVOController \*)KVOController
-{
-id controller = objc\_getAssociatedObject(self, NSObjectKVOControllerKey);
+    - (FBKVOController \*)KVOController
+    {
+    id controller = objc\_getAssociatedObject(self, NSObjectKVOControllerKey);
 
-// lazily create the KVOController
-if (nil == controller) {
-controller = [FBKVOController controllerWithObserver:self];
-self.KVOController = controller;
-}
+    // lazily create the KVOController
+    if (nil == controller) {
+    controller = [FBKVOController controllerWithObserver:self];
+    self.KVOController = controller;
+    }
 
-return controller;
-}
+    return controller;
+    }
 
-- (void)setKVOController:(FBKVOController \*)KVOController
-{
-objc\_setAssociatedObject(self, NSObjectKVOControllerKey, KVOController, OBJC\_ASSOCIATION\_RETAIN\_NONATOMIC);
-}
+    - (void)setKVOController:(FBKVOController \*)KVOController
+    {
+    objc\_setAssociatedObject(self, NSObjectKVOControllerKey, KVOController, OBJC\_ASSOCIATION\_RETAIN\_NONATOMIC);
+    }
 
-- (FBKVOController \*)KVOControllerNonRetaining
-{
-id controller = objc\_getAssociatedObject(self, NSObjectKVOControllerNonRetainingKey);
+    - (FBKVOController \*)KVOControllerNonRetaining
+    {
+    id controller = objc\_getAssociatedObject(self, NSObjectKVOControllerNonRetainingKey);
 
-if (nil == controller) {
-controller = [[FBKVOController alloc] initWithObserver:self retainObserved:NO];
-self.KVOControllerNonRetaining = controller;
-}
+    if (nil == controller) {
+    controller = [[FBKVOController alloc] initWithObserver:self retainObserved:NO];
+    self.KVOControllerNonRetaining = controller;
+    }
 
-return controller;
-}
+    return controller;
+    }
 
-- (void)setKVOControllerNonRetaining:(FBKVOController \*)KVOControllerNonRetaining
-{
-objc\_setAssociatedObject(self, NSObjectKVOControllerNonRetainingKey, KVOControllerNonRetaining,     OBJC\_ASSOCIATION\_RETAIN\_NONATOMIC);
-}
+    - (void)setKVOControllerNonRetaining:(FBKVOController \*)KVOControllerNonRetaining
+    {
+    objc\_setAssociatedObject(self, NSObjectKVOControllerNonRetainingKey, KVOControllerNonRetaining,        OBJC\_ASSOCIATION\_RETAIN\_NONATOMIC);
+    }
 
 
 
@@ -83,43 +83,43 @@ objc\_setAssociatedObject(self, NSObjectKVOControllerNonRetainingKey, KVOControl
 
 #### 1）几个基本API
 
-/\*\*
-@abstract Creates and returns an initialized KVO controller instance.
-@param observer The object notified on key-value change.
-@return The initialized KVO controller instance.
-\*/
-+ (instancetype)controllerWithObserver:(nullable id)observer;
+    /\*\*
+    @abstract Creates and returns an initialized KVO controller instance.
+    @param observer The object notified on key-value change.
+    @return The initialized KVO controller instance.
+    \*/
+    + (instancetype)controllerWithObserver:(nullable id)observer;
 
 
-/\*\*
-@abstract Registers observer for key-value change notification.
-@param object The object to observe.
-@param keyPath The key path to observe.
-@param options The NSKeyValueObservingOptions to use for observation.
-@param block The block to execute on notification.
-@discussion On key-value change, the specified block is called. In order to avoid retain loops, the block must avoid referencing the KVO controller or an owner thereof. Observing an already observed object key path or nil results in no operation.
-\*/
-- (void)observe:(nullable id)object keyPath:(NSString \*)keyPath options:(NSKeyValueObservingOptions)options block:(FBKVONotificationBlock)block;
+    /\*\*
+    @abstract Registers observer for key-value change notification.
+    @param object The object to observe.
+    @param keyPath The key path to observe.
+    @param options The NSKeyValueObservingOptions to use for observation.
+    @param block The block to execute on notification.
+    @discussion On key-value change, the specified block is called. In order to avoid retain loops, the block must avoid referencing the  KVO controller or an owner thereof. Observing an already observed object key path or nil results in no operation.
+    \*/
+    - (void)observe:(nullable id)object keyPath:(NSString \*)keyPath options:(NSKeyValueObservingOptions)options block:(FBKVONotificationBlock)block;
 
 
-/\*\*
-@abstract Registers observer for key-value change notification.
-@param object The object to observe.
-@param keyPath The key path to observe.
-@param options The NSKeyValueObservingOptions to use for observation.
-@param action The observer selector called on key-value change.
-@discussion On key-value change, the observer's action selector is called. The selector provided should take the form of -propertyDidChange, -    propertyDidChange: or -propertyDidChange:object:, where optional parameters delivered will be KVO change dictionary and object observed. Observing nil or observing an already observed object's key path results in no operation.
-\*/
-- (void)observe:(nullable id)object keyPath:(NSString \*)keyPath options:(NSKeyValueObservingOptions)options action:(SEL)action;
+    /\*\*
+    @abstract Registers observer for key-value change notification.
+    @param object The object to observe.
+    @param keyPath The key path to observe.
+    @param options The NSKeyValueObservingOptions to use for observation.
+    @param action The observer selector called on key-value change.
+    @discussion On key-value change, the observer's action selector is called. The selector provided should take the form of -propertyDidChange, -    propertyDidChange: or -propertyDidChange:object:, where optional parameters delivered will be KVO change dictionary and object observed. Observing nil or observing an already observed object's key path results in no operation.
+    \*/
+    - (void)observe:(nullable id)object keyPath:(NSString \*)keyPath options:(NSKeyValueObservingOptions)options action:(SEL)action;
 
 
-/\*\*
-@abstract Block called on key-value change notification.
-@param observer The observer of the change.
-@param object The object changed.
-@param change The change dictionary which also includes @c FBKVONotificationKeyPathKey
-\*/
-typedef void (^FBKVONotificationBlock)(id \_Nullable observer, id object, NSDictionary\<NSKeyValueChangeKey, id\> \*change);
+    /\*\*
+    @abstract Block called on key-value change notification.
+    @param observer The observer of the change.
+    @param object The object changed.
+    @param change The change dictionary which also includes @c FBKVONotificationKeyPathKey
+    \*/
+    typedef void (^FBKVONotificationBlock)(id \_Nullable observer, id object, NSDictionary\<NSKeyValueChangeKey, id\> \*change);
 
 
 
@@ -144,8 +144,8 @@ KVOController的实现需要有两个私有的成员变量：
 
 #### 1、下面让我们看初始化方法：
 
-- (instancetype)initWithObserver:(nullable id)observer retainObserved:(BOOL)retainObserved
-{
+    - (instancetype)initWithObserver:(nullable id)observer retainObserved:(BOOL)retainObserved
+    {
 self = [super init];
 if (nil != self) {
 \_observer = observer;
