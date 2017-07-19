@@ -1,4 +1,4 @@
-##前言
+## 前言
 
 KVO是iOS开发当中必不可少的一个工具，可以说是使用最广泛的工具之一。无论你是要在检测某一个属性变化，还是构建viewmodel双向绑定UI以及数据，KVO都是一个十分使用的工具。
 
@@ -10,16 +10,16 @@ KVO用起来太TMD麻烦了，要注册成为某个对象属性的观察者，�
 所以说，对于我来说，能不用的时候，尽量绕过去用其他的方法，直到我发现了Facebook的开源框架[KVOController](https://github.com/facebook/KVOController)。
 
 ***
-##基本介绍
+## 基本介绍
 
-####1、主要结构
+#### 1、主要结构
 
 ![屏幕快照 2017-07-19 上午12.51.20.png](http://upload-images.jianshu.io/upload_images/711112-37dfa51ee5ca534b.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240)
 
 事实上**KVOController**的实现只有2各类，第一个是NSObject的Category是我们使用的类，第二个则是具体的实现方法。
 
 
-####2、NSObject + FBKVOController 分析
+#### 2、NSObject + FBKVOController 分析
 
 在Category的.h文件中有两个属性，根据备注可知区别在意一个是持有的，另一个不是。
 
@@ -80,10 +80,10 @@ Category的.m文件和其他文件类似，写的都是**setter**以及**getter*
 
 
 
-###3、FBKVOController分析
+### 3、FBKVOController分析
 
 
-   ####1）几个基本API
+   #### 1）几个基本API
 
     /**
      @abstract Creates and returns an initialized KVO controller instance.
@@ -133,7 +133,7 @@ Category的.m文件和其他文件类似，写的都是**setter**以及**getter*
 
 
 ***
-##主要的实现逻辑
+## 主要的实现逻辑
 
 KVOController的实现需要有两个私有的成员变量：
   *  NSMapTable<id, NSMutableSet<_FBKVOInfo *> *> *_objectInfosMap;
@@ -144,7 +144,7 @@ KVOController的实现需要有两个私有的成员变量：
 
 在实现过程中，作为 KVO 的管理者，其必须持有当前对象所有与 KVO 有关的信息，而在 KVOController 中，用于存储这个信息的数据结构就是 NSMapTable。为了保证线程安全，需要持有pthread_mutex_t锁，用于在操作NSMapTable时候使用。
 
-####1、下面让我们看初始化方法：
+#### 1、下面让我们看初始化方法：
 
     - (instancetype)initWithObserver:(nullable id)observer retainObserved:(BOOL)retainObserved
     {
@@ -163,7 +163,7 @@ KVOController的实现需要有两个私有的成员变量：
 通过方法**+ (instancetype)controllerWithObserver:(nullable id)observer**初始化的时候，默认为持有。
 
 
-####2、注册观察者
+#### 2、注册观察者
 
 通常情况下我们会使用可以回调Block的API，但是也有少数情况下会选择传递选择子SEL的API，我们这里只拿传递Block的方法举例子。
 
@@ -293,7 +293,7 @@ KVOController的实现需要有两个私有的成员变量：
 
 然后对信息中的state进行更改。
 
-####3、观察并回调
+#### 3、观察并回调
 
     - (void)observeValueForKeyPath:(nullable NSString *)keyPath
                       ofObject:(nullable id)object
@@ -347,7 +347,7 @@ KVOController的实现需要有两个私有的成员变量：
 这个就相对简单了，主要是根据关注信息内是Block还是Action来执行，如果两者都没有就会调用观察者 KVO 回调方法。
 
 
-####4、注销观察
+#### 4、注销观察
 
 事实上，注销是在执行dealloc的时候执行的，同时也去掉了锁：
 
@@ -404,12 +404,12 @@ KVOController的实现需要有两个私有的成员变量：
     }
 
 ***
-##总结
+## 总结
 这套框架提供了丰富的结构，基本能够满足我们对于KVO的使用需求。
 只需要一次代码，就可以完成对一个对象的键值观测，同时不需要处理移除观察者，也可以在同一处代码进行键值变化之后的处理，从恶心的回调方法中解脱出来，不仅提供了使用方便，也不需要我们手动主要观察者，避免了各种问题，绝对算的上一个完善好用的框架。
 
 ***
-##Refrence
+## Refrence
 
   *  [如何优雅地使用 KVO](http://draveness.me/kvocontroller.html)
   *  [FBKVOController](https://github.com/facebook/KVOController)
