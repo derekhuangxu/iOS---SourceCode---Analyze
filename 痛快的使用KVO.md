@@ -213,7 +213,7 @@ KVOController的实现需要有两个私有的成员变量：
       return self;
     }
 
-由此可以看出，** _FBKVOInfo**的主要作用就是起到了一个类似Model一样存储主要数据的作用，并储存了一个**_FBKVOInfoState**作为表示当前的 KVO 状态。
+由此可以看出，**_FBKVOInfo**的主要作用就是起到了一个类似Model一样存储主要数据的作用，并储存了一个**_FBKVOInfoState**作为表示当前的 KVO 状态。
 需要注意的是，成员变量都是用了**@public**修饰。
 另外，对**- (NSString *)debugDescription**以及**- (NSString *)debugDescription**两个方法做了重写，方便了使用以及Debug。
 
@@ -260,7 +260,7 @@ KVOController的实现需要有两个私有的成员变量：
   *  如果当前的关注列表不存在则此时创建一个
   *  将关注的信息储存在关注列表中。
 
-2）然后是获取了** _FBKVOSharedController**单例并且执行了单例的**- (void)observe:(id)object info:(nullable _FBKVOInfo *)info**方法。
+2）然后是获取了 **_FBKVOSharedController**单例并且执行了单例的 **- (void)observe:(id)object info:(nullable _FBKVOInfo *)info**方法。
 
      - (void)observe:(id)object info:(nullable _FBKVOInfo *)info
     {
@@ -357,7 +357,7 @@ KVOController的实现需要有两个私有的成员变量：
       pthread_mutex_destroy(&_lock);
     }
 
-因为KVO事件都由私有的** _KVOSharedController** 来处理，所以当每一个**  KVOController ** 对象被释放时，都会将它自己持有的所有 KVO 的观察者交由**  _KVOSharedControlle** r的方法处理，我们再来看下代码：
+因为KVO事件都由私有的 **_KVOSharedController** 来处理，所以当每一个 **KVOController** 对象被释放时，都会将它自己持有的所有 KVO 的观察者交由**  _KVOSharedControlle** r的方法处理，我们再来看下代码：
 
     - (void)unobserve:(id)object infos:(nullable NSSet<_FBKVOInfo *> *)infos
     {
@@ -381,9 +381,9 @@ KVOController的实现需要有两个私有的成员变量：
       }
     }
 
-该方法会遍历所有传入的**  _FBKVOInfo** ，从其中取出**keyPath**  并将 ** _KVOSharedController ** 移除观察者。
+该方法会遍历所有传入的 **_FBKVOInfo** ，从其中取出 **keyPath**  并将 **_KVOSharedController** 移除观察者。
 
-当然，假如你需要手动的移除某一个的观察者，** _KVOSharedController ** 也提供了方法：
+当然，假如你需要手动的移除某一个的观察者，**_KVOSharedController** 也提供了方法：
 
     - (void)unobserve:(id)object info:(nullable _FBKVOInfo *)info
     {
