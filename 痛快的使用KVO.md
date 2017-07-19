@@ -7,6 +7,7 @@ KVO是iOS开发当中必不可少的一个工具，可以说是使用最广泛�
 KVO用起来太TMD麻烦了，要注册成为某个对象属性的观察者，要在适当的时候移除观察者状态，还要写毁掉函数，更蛋疼的是对象属性还要用字符串作为表示。其中任何一个地方都要注意很多点，而且因为Delegate回调函数的原因，导致代码分离，可读性极差，维护起来异常费劲。
 
 所以说，对于我来说，能不用的时候，尽量绕过去用其他的方法，直到我发现了Facebook的开源框架[KVOController][1]。
+
 ---- 
 ## 基本介绍
 
@@ -287,60 +288,60 @@ KVOController的实现需要有两个私有的成员变量：
 
 加锁，对于当前单例的**NSHashTable**进行添加操作的信息，并执行**Foundation**的
 
-- (void)addObserver:(NSObject *)observer forKeyPath:(NSString *)keyPath options:(NSKeyValueObservingOptions)options context:(nullable void \*)context;
+        - (void)addObserver:(NSObject *)observer forKeyPath:(NSString *)keyPath options:(NSKeyValueObservingOptions)options context:(nullable void \*)context;
 
 然后对信息中的state进行更改。
 
 #### 3、观察并回调
 
-- (void)observeValueForKeyPath:(nullable NSString \*)keyPath
-ofObject:(nullable id)object
-change:(nullable NSDictionary\<NSKeyValueChangeKey, id\> \*)change
-context:(nullable void \*)context
-{
-NSAssert(context, @"missing context keyPath:%@ object:%@ change:%@", keyPath, object, change);
+        - (void)observeValueForKeyPath:(nullable NSString \*)keyPath
+        ofObject:(nullable id)object
+        change:(nullable NSDictionary\<NSKeyValueChangeKey, id\> \*)change
+        context:(nullable void \*)context
+        {
+        NSAssert(context, @"missing context keyPath:%@ object:%@ change:%@", keyPath, object, change);
 
-\_FBKVOInfo \*info;
+        \_FBKVOInfo \*info;
 
-{
-// lookup context in registered infos, taking out a strong reference only if it exists
-pthread\_mutex\_lock(&\_mutex);
-info = [_infos member:(_\_bridge id)context];
-pthread\_mutex\_unlock(&\_mutex);
-}
+        {
+        // lookup context in registered infos, taking out a strong reference only if it exists
+        pthread\_mutex\_lock(&\_mutex);
+        info = [_infos member:(_\_bridge id)context];
+        pthread\_mutex\_unlock(&\_mutex);
+        }
 
-if (nil != info) {
+        if (nil != info) {
 
-// take strong reference to controller
-FBKVOController \*controller = info-\>\_controller;
-if (nil != controller) {
+        // take strong reference to controller
+        FBKVOController \*controller = info-\>\_controller;
+        if (nil != controller) {
 
-// take strong reference to observer
-id observer = controller.observer;
-if (nil != observer) {
+        // take strong reference to observer
+        id observer = controller.observer;
+        if (nil != observer) {
 
-// dispatch custom block or action, fall back to default action
-if (info-\>\_block) {
-NSDictionary\<NSKeyValueChangeKey, id\> \*changeWithKeyPath = change;
-// add the keyPath to the change dictionary for clarity when mulitple keyPaths are being observed
-if (keyPath) {
-NSMutableDictionary\<NSString *, id\> *mChange = [NSMutableDictionary dictionaryWithObject:keyPath forKey:FBKVONotificationKeyPathKey];
-[mChange addEntriesFromDictionary:change];
-changeWithKeyPath = [mChange copy];
-}
-info-\>\_block(observer, object, changeWithKeyPath);
-} else if (info-\>\_action) {
-# pragma clang diagnostic push
-# pragma clang diagnostic ignored "-Warc-performSelector-leaks"
-[observer performSelector:info-\>\_action withObject:change withObject:object];
-# pragma clang diagnostic pop
-} else {
-[observer observeValueForKeyPath:keyPath ofObject:object change:change context:info-\>\_context];
-}
-}
-}
-}
-}
+        // dispatch custom block or action, fall back to default action
+        if (info-\>\_block) {
+        NSDictionary\<NSKeyValueChangeKey, id\> \*changeWithKeyPath = change;
+        // add the keyPath to the change dictionary for clarity when mulitple keyPaths are being observed
+        if (keyPath) {
+        NSMutableDictionary\<NSString *, id\> *mChange = [NSMutableDictionary dictionaryWithObject:keyPath forKey:FBKVONotificationKeyPathKey];
+        [mChange addEntriesFromDictionary:change];
+        changeWithKeyPath = [mChange copy];
+        }
+        info-\>\_block(observer, object, changeWithKeyPath);
+        } else if (info-\>\_action) {
+        # pragma clang diagnostic push
+        # pragma clang diagnostic ignored "-Warc-performSelector-leaks"
+        [observer performSelector:info-\>\_action withObject:change withObject:object];
+        # pragma clang diagnostic pop
+        } else {
+        [observer observeValueForKeyPath:keyPath ofObject:object change:change context:info-\>\_context];
+        }
+        }
+        }
+        }
+        }
 
 这个就相对简单了，主要是根据关注信息内是Block还是Action来执行，如果两者都没有就会调用观察者 KVO 回调方法。
 
@@ -349,57 +350,57 @@ info-\>\_block(observer, object, changeWithKeyPath);
 
 事实上，注销是在执行dealloc的时候执行的，同时也去掉了锁：
 
-- (void)dealloc
-{
-[self unobserveAll];
-pthread\_mutex\_destroy(&\_lock);
-}
+        - (void)dealloc
+        {
+        [self unobserveAll];
+        pthread\_mutex\_destroy(&\_lock);
+        }
 
 因为KVO事件都由私有的\*\* _KVOSharedController\*\* 来处理，所以当每一个\*\*  KVOController \*\* 对象被释放时，都会将它自己持有的所有 KVO 的观察者交由\*\*  _KVOSharedControlle\*\* r的方法处理，我们再来看下代码：
 
-- (void)unobserve:(id)object infos:(nullable NSSet\<\_FBKVOInfo *\> *)infos
-{
-if (0 == infos.count) {
-return;
-}
+        - (void)unobserve:(id)object infos:(nullable NSSet\<\_FBKVOInfo *\> *)infos
+        {
+        if (0 == infos.count) {
+        return;
+        }
 
-// unregister info
-pthread\_mutex\_lock(&\_mutex);
-for (\_FBKVOInfo \*info in infos) {
-[\_infos removeObject:info];
-}
-pthread\_mutex\_unlock(&\_mutex);
+        // unregister info
+        pthread\_mutex\_lock(&\_mutex);
+        for (\_FBKVOInfo \*info in infos) {
+        [\_infos removeObject:info];
+        }
+        pthread\_mutex\_unlock(&\_mutex);
 
-// remove observer
-for (\_FBKVOInfo \*info in infos) {
-if (info-\>\_state == \_FBKVOInfoStateObserving) {
-[object removeObserver:self forKeyPath:info-\>\_keyPath context:(void \*)info];
-}
-info-\>\_state = \_FBKVOInfoStateNotObserving;
-}
-}
+        // remove observer
+        for (\_FBKVOInfo \*info in infos) {
+        if (info-\>\_state == \_FBKVOInfoStateObserving) {
+        [object removeObserver:self forKeyPath:info-\>\_keyPath context:(void \*)info];
+        }
+        info-\>\_state = \_FBKVOInfoStateNotObserving;
+        }
+        }
 
 该方法会遍历所有传入的\*\*  _FBKVOInfo\*\* ，从其中取出**keyPath**  并将 \*\* _KVOSharedController \*\* 移除观察者。
 
 当然，假如你需要手动的移除某一个的观察者，\*\* \_KVOSharedController \*\* 也提供了方法：
 
-- (void)unobserve:(id)object info:(nullable \_FBKVOInfo \*)info
-{
-if (nil == info) {
-return;
-}
+        - (void)unobserve:(id)object info:(nullable \_FBKVOInfo \*)info
+        {
+        if (nil == info) {
+        return;
+        }
 
-// unregister info
-pthread\_mutex\_lock(&\_mutex);
-[\_infos removeObject:info];
-pthread\_mutex\_unlock(&\_mutex);
+        // unregister info
+        pthread\_mutex\_lock(&\_mutex);
+        [\_infos removeObject:info];
+        pthread\_mutex\_unlock(&\_mutex);
 
-// remove observer
-if (info-\>\_state == \_FBKVOInfoStateObserving) {
-[object removeObserver:self forKeyPath:info-\>\_keyPath context:(void \*)info];
-}
-info-\>\_state = \_FBKVOInfoStateNotObserving;
-}
+        // remove observer
+        if (info-\>\_state == \_FBKVOInfoStateObserving) {
+        [object removeObserver:self forKeyPath:info-\>\_keyPath context:(void \*)info];
+        }
+        info-\>\_state = \_FBKVOInfoStateNotObserving;
+    }
 
 ---- 
 ## 总结
