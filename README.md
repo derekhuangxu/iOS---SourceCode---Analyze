@@ -8,4 +8,4 @@
 ---- 
 
 * [痛快的使用KVO -- FBKVOController源码分析](https://github.com/derekhuangxu/iOS---SourceCode---Analyze/blob/master/%E7%97%9B%E5%BF%AB%E7%9A%84%E4%BD%BF%E7%94%A8KVO.md)
-* [在Objective-C的ARC情况下，什么样的内存泄漏是无法避免或者减少的？](https://github.com/derekhuangxu/iOS---SourceCode---Analyze/blob/master/%E7%97%9B%E5%BF%AB%E7%9A%84%E4%BD%BF%E7%94%A8KVO%20--%20FBKVOController%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90.md)
+* [在Objective-C的ARC情况下，什么样的内存泄漏是无法避免或者减少的？](https://github.com/derekhuangxu/iOS---SourceCode---Analyze/blob/master/%E5%9C%A8Objective-C%E7%9A%84ARC%E6%83%85%E5%86%B5%E4%B8%8B%EF%BC%8C%E4%BB%80%E4%B9%88%E6%A0%B7%E7%9A%84%E5%86%85%E5%AD%98%E6%B3%84%E6%BC%8F%E6%98%AF%E6%97%A0%E6%B3%95%E9%81%BF%E5%85%8D%E6%88%96%E8%80%85%E5%87%8F%E5%B0%91%E7%9A%84%EF%BC%9F.md)
